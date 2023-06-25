@@ -1,0 +1,116 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: infra-template
+  title: Infra
+  description: Template for creating infra using terraform
+  tags:
+    - terraform
+    - infra
+spec:
+  owner: shubham@syngenta.com
+  type: infra
+  parameters:
+    - title: Fill in some steps
+      required:
+        - name
+      properties:
+        team_name:
+          title: Github Team Name
+          type: string
+          description: Your Github Team Name in which the repo will create.
+          default: team
+          enum:
+            - cropwise-base-mobile
+            - global-data-science-brbh
+            - cropwise-base-framework
+            - cropwise-base
+            - cropwise-seeds-mobile
+            - cropwise-spray-assist
+            - insight-engine
+            - cropwise-hedging
+        name:
+          title: Name
+          type: string
+          description: Unique name of the component
+
+    - title:  Enter account details 
+      required:
+        - dev
+        - qa
+        - prod 
+        - stage 
+      properties:
+        dev:
+          title: Dev
+          type: string
+          description: AWS Account No. of DEV
+        
+        qa:
+          title: QA
+          type: string
+          description: AWS Account No. of QA
+        
+        prod:
+          title: PROD
+          type: string
+          description: AWS Account No. of PROD
+        stage:
+          title: STAGE
+          type: string
+          description: AWS Account No. of STAGE( if don't have account just put 000000000000)
+        
+        owner:
+          title: Owner
+          type: string
+          description: Owner of the component
+          # ui:field: OwnerPicker
+          # ui:options:
+          #   catalogFilter:
+          #     kind: Group
+    - title: Choose a location
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+  steps:
+    - id: template
+      name: Fetch Skeleton + Template
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          name: ${{ parameters.name }}
+          dev: ${{ parameters.dev }}
+          qa: ${{ parameters.qa}}
+          prod: ${{ parameters.prod }}
+          stage: ${{ parameters.stage }}
+          owner: ${{ parameters.owner }}
+          team: ${{parameters.team_name}}
+    - id: publish
+      name: Publish
+      action: publish:github
+      input:
+        allowedHosts: ["github.com"]
+        description: This is ${{ parameters.name }}
+        repoUrl: ${{ parameters.repoUrl }}
+        defaultBranch: main
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: "/catalog-info.yaml"
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
