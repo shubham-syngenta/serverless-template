@@ -1,14 +1,14 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: infra-template
-  title: Infra
+  name: serverless-template
+  title: serverless
   description: Template for creating infra using terraform
   tags:
-    - terraform
+    - serverless
     - infra
 spec:
-  owner: shubham@syngenta.com
+  owner: shubham@test.com
   type: infra
   parameters:
     - title: Fill in some steps
